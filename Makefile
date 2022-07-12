@@ -16,8 +16,8 @@ clean:
 install:
 	pip install -r requirements.txt
 
-build-cx_freeze:
+build-cf:
 	python setup.py build
 
-build-pyinstaller:
-	pyinstaller --noconfirm --onefile --console --icon "./assets/favicon.ico" --name "vRY" "./main.py" --distpath "./build/pyinstaller" 
+build-pi:
+	pyinstaller --noconfirm --onefile --console --icon "./assets/Logo.ico" --name "vRY" "./main.py" --distpath "./build/pyinstaller" 
