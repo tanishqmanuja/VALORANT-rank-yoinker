@@ -44,15 +44,6 @@ def program_exit(status: int):  # so we don't need to import the entire sys modu
     raise sys.exit(status)
 
 try:
-    if sys.argv[1] == "--configure":
-        configure()
-        input("press enter to exit...\n")
-        os._exit(1)
-except:
-    pass
-
-
-try:
     Logging = Logging()
     log = Logging.log
 
