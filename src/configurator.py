@@ -23,7 +23,10 @@ def configure():
         with open("config.json", "r") as openfile:
             user_config = json.load(openfile)
     except FileNotFoundError:
-        print("Config file does not exist, using fallback")
+        print("Generating default configuration")
+        user_config = default_config
+    except json.JSONDecodeError: 
+        print("config file maybe broken, using default instead")
         user_config = default_config
 
     menu_choices = [
@@ -50,5 +53,7 @@ def configure():
         config = default_config | user_config | changed_config
         with open("config.json", "w") as outfile:
             json.dump(config, outfile, indent=4)
+    else:
+        config = default_config | user_config
 
     return config

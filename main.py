@@ -51,9 +51,21 @@ try:
 except:
     pass
 
+
 try:
     Logging = Logging()
     log = Logging.log
+
+    try:
+        if len(sys.argv) > 1 and sys.argv[1] == "--configure":
+            configure()
+            input("press enter to exit...\n")
+            os._exit(1)
+    except Exception as e:
+        print("Something went wrong while running configurator!")
+        log(f"configurator encountered an error: {str(e)}")
+        input("press enter to exit...\n")
+        os._exit(1)
 
     ErrorSRC = Error(log)
     
