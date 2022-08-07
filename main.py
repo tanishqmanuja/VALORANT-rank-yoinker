@@ -306,6 +306,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
+                        wr = playerRank[4]
+
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
 
@@ -320,6 +322,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              wr,
                                               level
                                               ])
                         stats.save_data(
@@ -432,6 +435,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
+                        wr = playerRank[4]
+
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
 
@@ -447,6 +452,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              wr,
                                               level,
                                               ])
                         bar()
@@ -489,6 +495,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
+                        wr = playerRank[4]
+
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
 
@@ -503,6 +511,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              wr,
                                               level
                                               ])
                         # table.add_rows([])
@@ -529,7 +538,8 @@ try:
                                         # })
                 if cfg.get_flag("last_played"):
                     for played in already_played_with:
-                        print(f"\nAlready played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
+                        print("\n") 
+                        print(f"Already played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
                 already_played_with = []
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
