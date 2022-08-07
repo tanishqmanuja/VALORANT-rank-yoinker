@@ -31,6 +31,7 @@ from src.errors import Error
 
 from src.stats import Stats
 from src.configurator import configure
+from src.player_stats import PlayerStats
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -73,6 +74,7 @@ try:
     cfg = Config(log)
 
     rank = Rank(Requests, log, before_ascendant_seasons)
+    pstats = PlayerStats(Requests, log)
 
     content = Content(Requests, log)
 
@@ -259,6 +261,9 @@ try:
                         #     playerRank = rank.get_rank(player["Subject"], seasonID)
                         #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
+
+                        hs = pstats.get_stats(player["Subject"])
+
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"] and (not cfg.get_flag("omega")):
                             Namecolor = colors.get_color_from_team(player["TeamID"],
@@ -306,7 +311,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
-                        wr = playerRank[4]
+                        hs = colors.get_hs_gradient(hs)
+                        wr = colors.get_wr_gradient(playerRank[4])
 
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
@@ -322,6 +328,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              hs,
                                               wr,
                                               level
                                               ])
@@ -384,6 +391,9 @@ try:
                         #     playerRank = rank.get_rank(player["Subject"], seasonID)
                         #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
+
+                        hs = pstats.get_stats(player["Subject"])
+
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"] and (not cfg.get_flag("omega")):
                             NameColor = colors.get_color_from_team(pregame_stats['Teams'][0]['TeamID'],
@@ -435,7 +445,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
-                        wr = playerRank[4]
+                        hs = colors.get_hs_gradient(hs)
+                        wr = colors.get_wr_gradient(playerRank[4])
 
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
@@ -452,6 +463,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              hs,
                                               wr,
                                               level,
                                               ])
@@ -474,6 +486,9 @@ try:
                         #     playerRank = rank.get_rank(player["Subject"], seasonID)
                         #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
+
+                        hs = pstats.get_stats(player["Subject"])
+
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         PLcolor = colors.level_to_color(player_level)
 
@@ -495,7 +510,8 @@ try:
                         # LEADERBOARD
                         leaderboard = playerRank[2]
 
-                        wr = playerRank[4]
+                        hs = colors.get_hs_gradient(hs)
+                        wr = colors.get_wr_gradient(playerRank[4])
 
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
@@ -511,6 +527,7 @@ try:
                                               rr,
                                               peakRank,
                                               leaderboard,
+                                              hs,
                                               wr,
                                               level
                                               ])
