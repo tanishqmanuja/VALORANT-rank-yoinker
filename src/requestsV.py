@@ -23,7 +23,7 @@ class Requests:
         self.lockfile = self.get_lockfile()
 
         self.puuid = ''
-        #fetch puuid so its avaible outsite
+        #fetch puuid so its avaible outside
         self.get_headers()
 
     def check_version(self):
@@ -52,6 +52,7 @@ class Requests:
                 self.log(f"fetch: url: '{url_type}', endpoint: {endpoint}, method: {method},"
                     f" response code: {response.status_code}")
                 if not response.ok:
+                    self.log("response not ok glz endpoint")
                     time.sleep(5)
                     self.headers = {}
                     self.fetch(url_type, endpoint, method)
@@ -62,6 +63,7 @@ class Requests:
                     f"fetch: url: '{url_type}', endpoint: {endpoint}, method: {method},"
                     f" response code: {response.status_code}")
                 if not response.ok:
+                    self.log("response not ok pd endpoint")
                     time.sleep(5)
                     self.headers = {}
                     self.fetch(url_type, endpoint, method)
@@ -144,6 +146,5 @@ class Requests:
                 'X-Riot-ClientVersion': self.get_current_version(),
                 "User-Agent": "ShooterGame/13 Windows/10.0.19043.1.256.64bit"
             }
-        return headers
-
-
+            self.headers = headers
+        return self.headers

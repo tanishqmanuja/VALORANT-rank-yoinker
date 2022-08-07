@@ -9,7 +9,7 @@ from alive_progress import alive_bar
 import asyncio
 
 from src.constants import *
-from src.requests import Requests
+from src.requestsV import Requests
 from src.logs import Logging
 from src.config import Config
 from src.colors import Colors
@@ -137,10 +137,12 @@ try:
                     if game_state != None:
                         run = False
                     time.sleep(2)
+                log(f"first game state: {game_state}")
             else:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 game_state = loop.run_until_complete(Wss.recconect_to_websocket(game_state))
+                log(f"new game state: {game_state}")
                 loop.close()
             firstTime = False
             # loop = asyncio.new_event_loop()
@@ -244,11 +246,12 @@ try:
                                     party_icon = partyIcons[party]
                         playerRank = rank.get_rank(player["Subject"], seasonID)
                         rankStatus = playerRank[1]
-                        while not rankStatus:
-                            print("You have been rate limited, 😞 waiting 10 seconds!")
-                            time.sleep(10)
-                            playerRank = rank.get_rank(player["Subject"], seasonID)
-                            rankStatus = playerRank[1]
+                        #useless code since rate limit is handled in the requestsV
+                        # while not rankStatus:
+                        #     print("You have been rate limited, 😞 waiting 10 seconds!")
+                        #     time.sleep(10)
+                        #     playerRank = rank.get_rank(player["Subject"], seasonID)
+                        #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"]:
@@ -265,7 +268,7 @@ try:
                         lastTeam = player['TeamID']
                         lastTeamBoolean = True
                         if player["PlayerIdentity"]["HideAccountLevel"]:
-                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList:
+                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
                                 PLcolor = colors.level_to_color(player_level)
                             else:
                                 PLcolor = ""
@@ -365,11 +368,12 @@ try:
                                 partyCount += 1
                         playerRank = rank.get_rank(player["Subject"], seasonID)
                         rankStatus = playerRank[1]
-                        while not rankStatus:
-                            print("You have been rate limited, 😞 waiting 10 seconds!")
-                            time.sleep(10)
-                            playerRank = rank.get_rank(player["Subject"], seasonID)
-                            rankStatus = playerRank[1]
+                        #useless code since rate limit is handled in the requestsV
+                        # while not rankStatus:
+                        #     print("You have been rate limited, 😞 waiting 10 seconds!")
+                        #     time.sleep(10)
+                        #     playerRank = rank.get_rank(player["Subject"], seasonID)
+                        #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"]:
@@ -382,7 +386,7 @@ try:
                                                             player["Subject"], Requests.puuid, party_members=partyMembersList)
 
                         if player["PlayerIdentity"]["HideAccountLevel"]:
-                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList:
+                            if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
                                 PLcolor = colors.level_to_color(player_level)
                             else:
                                 PLcolor = ""
@@ -451,11 +455,12 @@ try:
                         party_icon = PARTYICONLIST[0]
                         playerRank = rank.get_rank(player["Subject"], seasonID)
                         rankStatus = playerRank[1]
-                        while not rankStatus:
-                            print("You have been rate limited, 😞 waiting 10 seconds!")
-                            time.sleep(10)
-                            playerRank = rank.get_rank(player["Subject"], seasonID)
-                            rankStatus = playerRank[1]
+                        #useless code since rate limit is handled in the requestsV
+                        # while not rankStatus:
+                        #     print("You have been rate limited, 😞 waiting 10 seconds!")
+                        #     time.sleep(10)
+                        #     playerRank = rank.get_rank(player["Subject"], seasonID)
+                        #     rankStatus = playerRank[1]
                         playerRank = playerRank[0]
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         PLcolor = colors.level_to_color(player_level)
@@ -525,6 +530,10 @@ try:
             # time.sleep(cfg.cooldown)
             pass
 except:
+    #lame implementation of fast ctrl+c exit
+    if str(traceback.format_exc()[-18:-1]) == "KeyboardInterrupt":
+        os._exit(1)
+
     log(traceback.format_exc())
     print(color(
         "The program has encountered an error. If the problem persists, please reach support"
