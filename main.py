@@ -94,7 +94,7 @@ try:
     agent_dict = content.get_all_agents()
     map_dict = content.get_maps()
 
-    colors = Colors(hide_names and (not cfg.get_flag("omega")), agent_dict, AGENTCOLORLIST)
+    colors = Colors(hide_names and (not cfg.get_feature_flag("omega")), agent_dict, AGENTCOLORLIST)
 
     loadoutsClass = Loadouts(Requests, log, colors, Server)
     table = Table(cfg)
@@ -218,7 +218,7 @@ try:
                                         if m["match_id"] != coregame.match_id and m["match_id"] not in m_set:
                                             times += 1
                                             m_set += (m["match_id"],)
-                                    if (player["PlayerIdentity"]["Incognito"] == False) or cfg.get_flag("omega"):
+                                    if (player["PlayerIdentity"]["Incognito"] == False) or cfg.get_feature_flag("omega"):
                                         already_played_with.append(
                                                 {
                                                     "times": times,
@@ -265,7 +265,7 @@ try:
                         hs = pstats.get_stats(player["Subject"])
 
                         player_level = player["PlayerIdentity"].get("AccountLevel")
-                        if player["PlayerIdentity"]["Incognito"] and (not cfg.get_flag("omega")):
+                        if player["PlayerIdentity"]["Incognito"] and (not cfg.get_feature_flag("omega")):
                             Namecolor = colors.get_color_from_team(player["TeamID"],
                                                             names[player["Subject"]],
                                                             player["Subject"], Requests.puuid, agent=player["CharacterID"], party_members=partyMembersList)
@@ -278,7 +278,7 @@ try:
                                 table.add_empty_row()
                         lastTeam = player['TeamID']
                         lastTeamBoolean = True
-                        if player["PlayerIdentity"]["HideAccountLevel"] and (not cfg.get_flag("omega")):
+                        if player["PlayerIdentity"]["HideAccountLevel"] and (not cfg.get_feature_flag("omega")):
                             if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
                                 PLcolor = colors.level_to_color(player_level)
                             else:
@@ -395,7 +395,7 @@ try:
                         hs = pstats.get_stats(player["Subject"])
 
                         player_level = player["PlayerIdentity"].get("AccountLevel")
-                        if player["PlayerIdentity"]["Incognito"] and (not cfg.get_flag("omega")):
+                        if player["PlayerIdentity"]["Incognito"] and (not cfg.get_feature_flag("omega")):
                             NameColor = colors.get_color_from_team(pregame_stats['Teams'][0]['TeamID'],
                                                             names[player["Subject"]],
                                                             player["Subject"], Requests.puuid, agent=player["CharacterID"], party_members=partyMembersList)
@@ -404,7 +404,7 @@ try:
                                                             names[player["Subject"]],
                                                             player["Subject"], Requests.puuid, party_members=partyMembersList)
 
-                        if player["PlayerIdentity"]["HideAccountLevel"] and (not cfg.get_flag("omega")):
+                        if player["PlayerIdentity"]["HideAccountLevel"] and (not cfg.get_feature_flag("omega")):
                             if player["Subject"] == Requests.puuid or player["Subject"] in partyMembersList or hide_levels == False:
                                 PLcolor = colors.level_to_color(player_level)
                             else:
