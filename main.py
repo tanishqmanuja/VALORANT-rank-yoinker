@@ -116,7 +116,7 @@ try:
     seasonID = content.get_latest_season_id(gameContent)
     lastGameState = ""
 
-    print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
+    #print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
 
 
     # loop = asyncio.new_event_loop()
