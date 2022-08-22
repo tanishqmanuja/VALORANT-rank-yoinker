@@ -123,10 +123,12 @@ try:
     # loop.run_until_complete(Wss.conntect_to_websocket(game_state))
     # loop.close()
     firstTime = True
+    firstPrint = True
     while True:
         table.clear()
         table.set_default_field_names()
         table.reset_runtime_col_flags()
+
         try:
 
 
@@ -166,6 +168,9 @@ try:
                 "PREGAME": color('Agent Select', fore=(103, 237, 76)),
                 "MENUS": color('In-Menus', fore=(238, 241, 54)),
             }
+
+            if (not firstPrint) and cfg.get_feature_flag("pre_cls"):
+                    os.system('cls')
 
             is_leaderboard_needed = False
 
@@ -549,6 +554,8 @@ try:
                     table.set_runtime_col_flag('Skin',False)
 
                 table.display()
+                firstPrint = False
+
                 print(f"VALORANT rank yoinker v{version}")
                                         #                 {
                                         #     "times": sum(stats_data[player["Subject"]]),

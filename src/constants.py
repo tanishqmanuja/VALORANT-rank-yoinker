@@ -150,6 +150,7 @@ DEFAULT_CONFIG = {
         },
         "flags": {
             "last_played": True,
+            "pre_cls": False,
             "auto_hide_leaderboard": True,
             "omega": True
         }

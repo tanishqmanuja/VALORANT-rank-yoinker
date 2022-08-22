@@ -12,6 +12,7 @@ TABLE_OPTS = {
 
 FLAGS_OPTS = {
 	"last_played": "Last Played Stats",
+    "pre_cls": "Pre-Clear Screen",
 	"auto_hide_leaderboard": "Auto Hide Leaderboard Column",
 	"omega": "Bypass Streamer Mode"
 }
