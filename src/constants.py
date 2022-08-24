@@ -2,7 +2,7 @@ import requests
 from colr import color
 
 version = "2.21"
-enablePrivateLogging = False
+enablePrivateLogging = True
 hide_names = True
 hide_levels = True
 
@@ -149,9 +149,10 @@ DEFAULT_CONFIG = {
             "winrate": True
         },
         "flags": {
+            "omega": True,
             "last_played": True,
-            "pre_cls": False,
             "auto_hide_leaderboard": True,
-            "omega": True
+            "pre_cls": False,
+            "game_chat": False
         }
     }

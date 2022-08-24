@@ -11,10 +11,11 @@ TABLE_OPTS = {
 }
 
 FLAGS_OPTS = {
+    "omega": "Bypass Streamer Mode",
 	"last_played": "Last Played Stats",
-    "pre_cls": "Pre-Clear Screen",
 	"auto_hide_leaderboard": "Auto Hide Leaderboard Column",
-	"omega": "Bypass Streamer Mode"
+    "pre_cls": "Pre-Clear Screen",
+    "game_chat": "Print Game Chat"
 }
 
 weapon_question = lambda config: {
