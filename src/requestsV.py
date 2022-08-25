@@ -2,7 +2,7 @@ import base64
 from distutils import errors
 import json
 import time
-
+from json.decoder import JSONDecodeError
 import requests
 from colr import color
 import os
@@ -51,8 +51,16 @@ class Requests:
                 response = requests.request(method, self.glz_url + endpoint, headers=self.get_headers(), verify=False)
                 self.log(f"fetch: url: '{url_type}', endpoint: {endpoint}, method: {method},"
                     f" response code: {response.status_code}")
+
+                try:
+                    if response.json().get("errorCode") == "BAD_CLAIMS":
+                        self.log("detected bad claims")
+                        self.headers = {}
+                        return self.fetch(url_type, endpoint, method)
+                except JSONDecodeError:
+                    pass
                 if not response.ok:
-                    self.log("response not ok glz endpoint")
+                    self.log("response not ok glz endpoint: " + response.text)
                     time.sleep(rate_limit_seconds+5)
                     self.headers = {}
                     self.fetch(url_type, endpoint, method)
@@ -64,11 +72,17 @@ class Requests:
                     f" response code: {response.status_code}")
                 if response.status_code == 404:
                     return response
+
+                try:
+                    if response.json().get("errorCode") == "BAD_CLAIMS":
+                        self.log("detected bad claims")
+                        self.headers = {}
+                        return self.fetch(url_type, endpoint, method)
+                except JSONDecodeError:
+                    pass
+
                 if not response.ok:
-                    if response.status_code != 429:
-                        self.log(f"response not ok pd endpoint, {response.text}")
-                    else:
-                        self.log(f"response not ok pd endpoint, {response.text}")
+                    self.log(f"response not ok pd endpoint, {response.text}")
                     time.sleep(rate_limit_seconds+5)
                     self.headers = {}
                     return self.fetch(url_type, endpoint, method, rate_limit_seconds=rate_limit_seconds+5)
@@ -108,6 +122,8 @@ class Requests:
                                (line.split('https://glz-')[1].split(".")[1])]
                 if "pd_url" in locals().keys() and "glz_url" in locals().keys():
                     self.log(f"got region from logs '{[pd_url, glz_url]}'")
+                    if pd_url == "pbe":
+                        return ["na", "na-1", "na"]
                     return [pd_url, glz_url]
 
     def get_current_version(self):

@@ -32,6 +32,8 @@ from src.stats import Stats
 from src.configurator import configure
 from src.player_stats import PlayerStats
 
+from src.chatlogs import ChatLogging
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 os.system('cls')
@@ -47,6 +49,9 @@ def program_exit(status: int):  # so we don't need to import the entire sys modu
 try:
     Logging = Logging()
     log = Logging.log
+
+    ChatLogging = ChatLogging()
+    chatlog = ChatLogging.chatLog
 
     try:
         if len(sys.argv) > 1 and sys.argv[1] == "--config":
@@ -65,6 +70,7 @@ try:
         input("press enter to exit...\n")
         os._exit(1)
 
+
     ErrorSRC = Error(log)
     
     Requests = Requests(version, log, ErrorSRC)
@@ -73,10 +79,10 @@ try:
 
     cfg = Config(log)
 
-    rank = Rank(Requests, log, before_ascendant_seasons)
-    pstats = PlayerStats(Requests, log, cfg)
-
     content = Content(Requests, log)
+
+    rank = Rank(Requests, log, content, before_ascendant_seasons)
+    pstats = PlayerStats(Requests, log, cfg)
 
     namesClass = Names(Requests, log)
 
@@ -97,11 +103,11 @@ try:
     colors = Colors(hide_names and (not cfg.get_feature_flag("omega")), agent_dict, AGENTCOLORLIST)
 
     loadoutsClass = Loadouts(Requests, log, colors, Server)
-    table = Table(cfg)
+    table = Table(cfg, chatlog)
 
     stats = Stats()
 
-    Wss = Ws(Requests.lockfile, Requests, cfg)
+    Wss = Ws(Requests.lockfile, Requests, cfg, colors, hide_names, chatlog)
     # loop = asyncio.new_event_loop()
     # asyncio.set_event_loop(loop)
     # loop.run_forever()
@@ -116,7 +122,8 @@ try:
     seasonID = content.get_latest_season_id(gameContent)
     lastGameState = ""
 
-    #print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
+    print(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
+    chatlog(color("\nVisit https://vry.netlify.app/matchLoadouts to view full player inventories\n", fore=(255, 253, 205)))
 
 
     # loop = asyncio.new_event_loop()
@@ -178,6 +185,16 @@ try:
             if game_state == "INGAME":
                 coregame_stats = coregame.get_coregame_stats()
                 Players = coregame_stats["Players"]
+                #data for chat to function
+                presence = presences.get_presence()
+                partyMembers = menu.get_party_members(Requests.puuid, presence)
+                partyMembersList = [a["Subject"] for a in partyMembers]
+
+                players_data = {}
+                players_data.update({"ignore": partyMembersList})
+                for player in Players:
+                    players_data.update({player["Subject"]: {"team": player["TeamID"], "agent": player["CharacterID"], "streamer_mode": player["PlayerIdentity"]["Incognito"]}})
+                Wss.set_player_data(players_data)
                 try:
                     server = GAMEPODS[coregame_stats["GamePodID"]]
                 except KeyError:
@@ -186,10 +203,7 @@ try:
                 names = namesClass.get_names_from_puuids(Players)
                 loadouts = loadoutsClass.get_match_loadouts(coregame.get_coregame_match_id(), Players, cfg.weapon, valoApiSkins, names, state="game")
                 with alive_bar(total=len(Players), title='Fetching Players', bar='classic2') as bar:
-                    presence = presences.get_presence()
                     partyOBJ = menu.get_party_json(namesClass.get_players_puuid(Players), presence)
-                    partyMembers = menu.get_party_members(Requests.puuid, presence)
-                    partyMembersList = [a["Subject"] for a in partyMembers]
                     # log(f"retrieved names dict: {names}")
                     Players.sort(key=lambda Players: Players["PlayerIdentity"].get("AccountLevel"), reverse=True)
                     Players.sort(key=lambda Players: Players["TeamID"], reverse=True)
@@ -258,16 +272,17 @@ try:
                                     # PARTY_ICON
                                     party_icon = partyIcons[party]
                         playerRank = rank.get_rank(player["Subject"], seasonID)
-                        rankStatus = playerRank[1]
+                        # rankStatus = playerRank[1]
                         #useless code since rate limit is handled in the requestsV
                         # while not rankStatus:
                         #     print("You have been rate limited, 😞 waiting 10 seconds!")
                         #     time.sleep(10)
                         #     playerRank = rank.get_rank(player["Subject"], seasonID)
                         #     rankStatus = playerRank[1]
-                        playerRank = playerRank[0]
 
-                        hs = pstats.get_stats(player["Subject"])
+                        ppstats = pstats.get_stats(player["Subject"])
+                        hs = ppstats["hs"]
+                        kd = ppstats["kd"]
 
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"] and (not cfg.get_feature_flag("omega")):
@@ -304,20 +319,25 @@ try:
                         skin = loadouts[player["Subject"]]
 
                         # RANK
-                        rankName = NUMBERTORANKS[playerRank[0]]
+                        rankName = NUMBERTORANKS[playerRank["rank"]]
 
                         # RANK RATING
-                        rr = playerRank[1]
+                        rr = playerRank["rr"]
+
+                        #short peak rank string
+                        peakRankAct = f" ({playerRank['peakrankep']}e{playerRank['peakrankact']})"
+                        if not cfg.get_feature_flag("peak_rank_act"):
+                            peakRankAct = ""
 
 
                         # PEAK RANK
-                        peakRank = NUMBERTORANKS[playerRank[3]]
+                        peakRank = NUMBERTORANKS[playerRank["peakrank"]] + peakRankAct
 
                         # LEADERBOARD
-                        leaderboard = playerRank[2]
+                        leaderboard = playerRank["leaderboard"]
 
                         hs = colors.get_hs_gradient(hs)
-                        wr = colors.get_wr_gradient(playerRank[4])
+                        wr = colors.get_wr_gradient(playerRank["wr"]) + f" ({playerRank['numberofgames']})"
 
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
@@ -343,7 +363,7 @@ try:
                                     "name": names[player["Subject"]],
                                     "agent": agent_dict[player["CharacterID"].lower()],
                                     "map": map_dict[coregame_stats["MapID"].lower()],
-                                    "rank": playerRank[0],
+                                    "rank": playerRank["rank"],
                                     "rr": rr,
                                     "match_id": coregame.match_id,
                                     "epoch": time.time(),
@@ -388,16 +408,18 @@ try:
                                     party_icon = partyIcons[party]
                                 partyCount += 1
                         playerRank = rank.get_rank(player["Subject"], seasonID)
-                        rankStatus = playerRank[1]
+                        # rankStatus = playerRank[1]
                         #useless code since rate limit is handled in the requestsV
                         # while not rankStatus:
                         #     print("You have been rate limited, 😞 waiting 10 seconds!")
                         #     time.sleep(10)
                         #     playerRank = rank.get_rank(player["Subject"], seasonID)
                         #     rankStatus = playerRank[1]
-                        playerRank = playerRank[0]
+                        # playerRank = playerRank[0]
 
-                        hs = pstats.get_stats(player["Subject"])
+                        ppstats = pstats.get_stats(player["Subject"])
+                        hs = ppstats["hs"]
+                        kd = ppstats["kd"]
 
                         player_level = player["PlayerIdentity"].get("AccountLevel")
                         if player["PlayerIdentity"]["Incognito"] and (not cfg.get_feature_flag("omega")):
@@ -439,19 +461,23 @@ try:
                         # skin = loadouts[player["Subject"]]
 
                         # RANK
-                        rankName = NUMBERTORANKS[playerRank[0]]
+                        rankName = NUMBERTORANKS[playerRank["rank"]]
 
                         # RANK RATING
-                        rr = playerRank[1]
+                        rr = playerRank["rr"]
 
+                        #short peak rank string
+                        peakRankAct = f" ({playerRank['peakrankep']}e{playerRank['peakrankact']})"
+                        if not cfg.get_feature_flag("peak_rank_act"):
+                            peakRankAct = ""
                         # PEAK RANK
-                        peakRank = NUMBERTORANKS[playerRank[3]]
+                        peakRank = NUMBERTORANKS[playerRank["peakrank"]] + peakRankAct
 
                         # LEADERBOARD
-                        leaderboard = playerRank[2]
+                        leaderboard = playerRank["leaderboard"]
 
                         hs = colors.get_hs_gradient(hs)
-                        wr = colors.get_wr_gradient(playerRank[4])
+                        wr = colors.get_wr_gradient(playerRank["wr"]) + f" ({playerRank['numberofgames']})"
 
                         if(int(leaderboard)>0):
                             is_leaderboard_needed = True
@@ -480,64 +506,74 @@ try:
                 with alive_bar(total=len(Players), title='Fetching Players', bar='classic2') as bar:
                     # log(f"retrieved names dict: {names}")
                     Players.sort(key=lambda Players: Players["PlayerIdentity"].get("AccountLevel"), reverse=True)
+                    seen = []
                     for player in Players:
-                        party_icon = PARTYICONLIST[0]
-                        playerRank = rank.get_rank(player["Subject"], seasonID)
-                        rankStatus = playerRank[1]
-                        #useless code since rate limit is handled in the requestsV
-                        # while not rankStatus:
-                        #     print("You have been rate limited, 😞 waiting 10 seconds!")
-                        #     time.sleep(10)
-                        #     playerRank = rank.get_rank(player["Subject"], seasonID)
-                        #     rankStatus = playerRank[1]
-                        playerRank = playerRank[0]
+                        if player not in seen:
+                            party_icon = PARTYICONLIST[0]
+                            playerRank = rank.get_rank(player["Subject"], seasonID)
+                            # rankStatus = playerRank[1]
+                            #useless code since rate limit is handled in the requestsV
+                            # while not rankStatus:
+                            #     print("You have been rate limited, 😞 waiting 10 seconds!")
+                            #     time.sleep(10)
+                            #     playerRank = rank.get_rank(player["Subject"], seasonID)
+                            #     rankStatus = playerRank[1]
+                            # playerRank = playerRank["rank"]
 
-                        hs = pstats.get_stats(player["Subject"])
+                            ppstats = pstats.get_stats(player["Subject"])
+                            hs = ppstats["hs"]
+                            kd = ppstats["kd"]
 
-                        player_level = player["PlayerIdentity"].get("AccountLevel")
-                        PLcolor = colors.level_to_color(player_level)
+                            player_level = player["PlayerIdentity"].get("AccountLevel")
+                            PLcolor = colors.level_to_color(player_level)
 
-                        # AGENT
-                        agent = ""
+                            # AGENT
+                            agent = ""
 
-                        # NAME
-                        name = color(names[player["Subject"]], fore=(76, 151, 237))
+                            # NAME
+                            name = color(names[player["Subject"]], fore=(76, 151, 237))
 
-                        # RANK
-                        rankName = NUMBERTORANKS[playerRank[0]]
+                            # RANK
+                            rankName = NUMBERTORANKS[playerRank["rank"]]
 
-                        # RANK RATING
-                        rr = playerRank[1]
+                            # RANK RATING
+                            rr = playerRank["rr"]
 
-                        # PEAK RANK
-                        peakRank = NUMBERTORANKS[playerRank[3]]
+                            #short peak rank string
+                            peakRankAct = f" ({playerRank['peakrankep']}e{playerRank['peakrankact']})"
+                            if not cfg.get_feature_flag("peak_rank_act"):
+                                peakRankAct = ""
 
-                        # LEADERBOARD
-                        leaderboard = playerRank[2]
+                            # PEAK RANK
+                            peakRank = NUMBERTORANKS[playerRank["peakrank"]] + peakRankAct
 
-                        hs = colors.get_hs_gradient(hs)
-                        wr = colors.get_wr_gradient(playerRank[4])
+                            # LEADERBOARD
+                            leaderboard = playerRank["leaderboard"]
 
-                        if(int(leaderboard)>0):
-                            is_leaderboard_needed = True
+                            hs = colors.get_hs_gradient(hs)
+                            wr = colors.get_wr_gradient(playerRank["wr"]) + f" ({playerRank['numberofgames']})"
 
-                        # LEVEL
-                        level = PLcolor
+                            if(int(leaderboard)>0):
+                                is_leaderboard_needed = True
 
-                        table.add_row_table([party_icon,
-                                              agent,
-                                              name,
-                                              "",
-                                              rankName,
-                                              rr,
-                                              peakRank,
-                                              leaderboard,
-                                              hs,
-                                              wr,
-                                              level
-                                              ])
-                        # table.add_rows([])
-                        bar()
+                            # LEVEL
+                            level = PLcolor
+
+                            table.add_row_table([party_icon,
+                                                agent,
+                                                name,
+                                                "",
+                                                rankName,
+                                                rr,
+                                                peakRank,
+                                                leaderboard,
+                                                hs,
+                                                wr,
+                                                level
+                                                ])
+                            # table.add_rows([])
+                            bar()
+                    seen.append(player["Subject"])
             if (title := game_state_dict.get(game_state)) is None:
                 # program_exit(1)
                 time.sleep(9)
@@ -558,6 +594,7 @@ try:
                 firstPrint = False
 
                 print(f"VALORANT rank yoinker v{version}")
+                chatlog(f"VALORANT rank yoinker v{version}")
                                         #                 {
                                         #     "times": sum(stats_data[player["Subject"]]),
                                         #     "name": curr_player_stat["name"],
@@ -565,9 +602,11 @@ try:
                                         #     "time_diff": time.time() - curr_player_stat["time"]
                                         # })
                 if cfg.get_feature_flag("last_played"):
-                    for played in already_played_with:
-                        print("\n") 
-                        print(f"Already played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
+                    if len(already_played_with) > 0:
+                        print("\n")
+                        for played in already_played_with:
+                            print(f"Already played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
+                            chatlog(f"Already played with {played['name']} (last {played['agent']}) {stats.convert_time(played['time_diff'])} ago. (Total played {played['times']} times)")
                 already_played_with = []
         if cfg.cooldown == 0:
             input("Press enter to fetch again...")
@@ -580,6 +619,9 @@ except KeyboardInterrupt:
 except:
     log(traceback.format_exc())
     print(color(
+        "The program has encountered an error. If the problem persists, please reach support"
+        f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
+    chatlog(color(
         "The program has encountered an error. If the problem persists, please reach support"
         f" with the logs found in {os.getcwd()}\logs", fore=(255, 0, 0)))
     input("press enter to exit...\n")

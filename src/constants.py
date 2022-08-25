@@ -1,7 +1,7 @@
 import requests
 from colr import color
 
-version = "2.21"
+version = "2.3"
 enablePrivateLogging = True
 hide_names = False
 hide_levels = False
@@ -153,6 +153,8 @@ DEFAULT_CONFIG = {
             "last_played": True,
             "auto_hide_leaderboard": True,
             "pre_cls": False,
-            "game_chat": False
+            "game_chat": False,
+            "peak_rank_act": True,
+            "kd": False
         }
     }
